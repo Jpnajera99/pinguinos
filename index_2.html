@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🐧 PINGUINOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080c10;--surface:#0e1419;--surface2:#151c24;--border:#1e2a35;
+  --accent:#00d4ff;--accent2:#ff6b35;--gold:#ffd700;--silver:#c0c0c0;
+  --bronze:#cd7f32;--text:#e8edf2;--text2:#7a8fa0;--green:#00e676;
+  --red:#ff4444;--yellow:#ffcc00;--admin:#ff6b35;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
+  max-width:430px;margin:0 auto;position:relative;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(0,212,255,.08) 0%,transparent 70%),
+             radial-gradient(ellipse 60% 30% at 80% 110%,rgba(255,107,53,.06) 0%,transparent 70%);
+  pointer-events:none;z-index:0}
+.screen{display:none;min-height:100vh;position:relative;z-index:1}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── LOGIN ── */
+#login-screen{align-items:center;justify-content:center;padding:2rem 1.5rem;gap:1.5rem}
+.logo-block{text-align:center}
+.logo-emoji{font-size:3.5rem;display:block;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.logo-title{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:4px;
+  background:linear-gradient(135deg,#00d4ff,#fff);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;line-height:1}
+.logo-sub{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--accent2);letter-spacing:3px;margin-top:4px}
+
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:1.5rem;width:100%;display:flex;flex-direction:column;gap:.85rem}
+.login-label{font-size:.7rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase;
+  font-family:'DM Mono',monospace;margin-bottom:.3rem;display:block}
+
+/* CUSTOM USER PICKER */
+.user-picker-btn{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;padding:.8rem 1rem;
+  cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;
+  transition:border-color .2s;outline:none;-webkit-appearance:none}
+.user-picker-btn:focus,.user-picker-btn.open{border-color:var(--accent)}
+.user-picker-btn .upb-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-picker-btn .upb-arrow{color:var(--text2);font-size:.8rem;margin-left:.5rem;transition:transform .2s}
+.user-picker-btn.open .upb-arrow{transform:rotate(180deg)}
+
+.user-dropdown{
+  background:var(--surface);border:1.5px solid var(--accent);border-radius:12px;
+  overflow:hidden;max-height:260px;overflow-y:auto;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:.25rem}
+.user-dropdown.open{display:block}
+.user-option{
+  padding:.75rem 1rem;font-size:.95rem;cursor:pointer;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.6rem;transition:background .15s}
+.user-option:last-child{border-bottom:none}
+.user-option:active,.user-option:hover{background:var(--surface2)}
+.user-option .uo-avatar{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:.65rem;color:#000;flex-shrink:0;font-weight:700}
+.user-option .uo-avatar.adm{background:linear-gradient(135deg,var(--admin),#ffcc00)}
+.user-option .uo-name{flex:1;font-weight:500}
+.user-option.selected{color:var(--accent)}
+
+/* INPUTS */
+input[type=password],input[type=text],input[type=date],input[type=number]{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;
+  padding:.8rem 1rem;outline:none;transition:border-color .2s;-webkit-appearance:none;
+  -webkit-text-fill-color:var(--text)}
+input:focus{border-color:var(--accent)}
+input[type=file]{background:var(--surface2);border:2px dashed var(--border);border-radius:12px;
+  color:var(--text2);font-size:.8rem;padding:.75rem;width:100%;cursor:pointer;
+  -webkit-appearance:none}
+input::placeholder{color:var(--text2)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+.error-msg{color:var(--red);font-size:.8rem;text-align:center;min-height:1rem}
+
+/* BUTTONS */
+.btn{background:linear-gradient(135deg,var(--accent),#0099cc);color:#000;
+  font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;border:none;
+  border-radius:12px;padding:.85rem;cursor:pointer;width:100%;transition:opacity .2s,transform .1s;
+  -webkit-appearance:none}
+.btn:active{transform:scale(.98);opacity:.9}
+.btn-danger{background:linear-gradient(135deg,var(--red),#cc0000);color:#fff}
+.btn-orange{background:linear-gradient(135deg,var(--accent2),#cc4400);color:#fff}
+.btn-green{background:linear-gradient(135deg,var(--green),#00aa44);color:#000}
+.btn-sm{font-size:.75rem;padding:.4rem .7rem;border-radius:8px;width:auto;letter-spacing:1px}
+
+/* HEADER */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--accent)}
+.header-user{font-size:.75rem;color:var(--text2)}
+.header-user span{color:var(--text);font-weight:600}
+.admin-badge{background:var(--admin);color:#fff;font-size:.55rem;font-family:'DM Mono',monospace;
+  padding:1px 5px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;margin-left:4px}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);
+  font-size:.7rem;padding:.3rem .6rem;cursor:pointer;font-family:'DM Mono',monospace}
+
+/* TABS */
+.tab-bar{display:flex;background:var(--surface);border-top:1px solid var(--border);
+  position:sticky;bottom:0;z-index:100}
+.tab-btn{flex:1;background:none;border:none;color:var(--text2);font-size:.55rem;
+  font-family:'DM Mono',monospace;letter-spacing:.5px;padding:.6rem .2rem;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s;
+  text-transform:uppercase;-webkit-appearance:none}
+.tab-btn .tab-icon{font-size:1.2rem}
+.tab-btn.active{color:var(--accent)}
+.tab-btn.admin-tab.active{color:var(--admin)}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:1rem;-webkit-overflow-scrolling:touch}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;
+  margin-bottom:1rem;color:var(--text)}
+.section-title span{color:var(--accent)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:1rem;margin-bottom:.75rem}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;
+  color:var(--text2);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+
+/* SEGMENTS */
+.seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.seg-box{background:var(--surface2);border-radius:10px;padding:.6rem;text-align:center}
+.seg-box .seg-label{font-size:.6rem;color:var(--text2);letter-spacing:1px;
+  text-transform:uppercase;font-family:'DM Mono',monospace}
+.seg-box .seg-val{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--text);margin-top:2px}
+.seg-box.total{grid-column:1/-1;
+  background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,212,255,.05));
+  border:1px solid rgba(0,212,255,.2)}
+.seg-box.total .seg-val{color:var(--accent);font-size:1.5rem}
+
+/* RANKINGS */
+.rank-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 0;
+  border-bottom:1px solid var(--border)}
+.rank-item:last-child{border-bottom:none}
+.rank-pos{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;width:28px;
+  text-align:center;flex-shrink:0}
+.rank-pos.p1{color:var(--gold)}.rank-pos.p2{color:var(--silver)}
+.rank-pos.p3{color:var(--bronze)}.rank-pos.other{color:var(--text2);font-size:1rem}
+.rank-name{font-weight:600;font-size:.9rem;flex:1}
+.rank-sub{font-size:.65rem;color:var(--text2);font-family:'DM Mono',monospace;font-weight:400}
+.rank-time{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent);letter-spacing:1px}
+
+/* FORMS */
+.form-label{font-size:.7rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase;
+  font-family:'DM Mono',monospace;margin-bottom:.3rem;display:block}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.divider{height:1px;background:var(--border);margin:1rem 0}
+
+/* CHIPS */
+.year-chips{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:.3rem .7rem;font-size:.75rem;cursor:pointer;font-family:'DM Mono',monospace;
+  transition:all .2s;color:var(--text2)}
+.chip.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.sport-tabs{display:flex;gap:.4rem;overflow-x:auto;margin-bottom:1rem;
+  padding-bottom:.2rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sport-tabs::-webkit-scrollbar{display:none}
+.sport-tab{background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:.4rem .8rem;font-size:.75rem;font-family:'DM Mono',monospace;cursor:pointer;
+  white-space:nowrap;color:var(--text2);transition:all .2s;flex-shrink:0}
+.sport-tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+/* AVATAR */
+.avatar{width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;
+  font-size:.75rem;color:#000;flex-shrink:0;font-weight:700}
+.avatar-lg{width:72px;height:72px;font-size:1rem;margin:0 auto .75rem}
+.avatar.is-admin{background:linear-gradient(135deg,var(--admin),#ffcc00)}
+
+/* SPORT BADGES */
+.sport-badge{display:inline-flex;align-items:center;gap:.3rem;background:var(--surface2);
+  border:1px solid var(--border);border-radius:8px;padding:.25rem .5rem;
+  font-size:.7rem;font-family:'DM Mono',monospace;color:var(--text2);margin:2px}
+.sport-badge.has-pr{border-color:rgba(0,212,255,.3);color:var(--accent)}
+
+/* STATUS */
+.status-badge{display:inline-block;font-size:.65rem;font-family:'DM Mono',monospace;
+  padding:2px 8px;border-radius:20px;letter-spacing:1px;text-transform:uppercase}
+.status-pending{background:rgba(255,204,0,.15);color:var(--yellow);border:1px solid rgba(255,204,0,.3)}
+.status-approved{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.status-rejected{background:rgba(255,68,68,.15);color:var(--red);border:1px solid rgba(255,68,68,.3)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:.9rem;text-align:center}
+.stat-number{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);line-height:1}
+.stat-label{font-size:.7rem;color:var(--text2);font-family:'DM Mono',monospace;letter-spacing:1px}
+
+/* MISC */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.empty{text-align:center;padding:2rem 1rem;color:var(--text2)}
+.empty .empty-icon{font-size:2.5rem;display:block;margin-bottom:.5rem}
+.empty p{font-size:.85rem}
+.no-pr{color:var(--text2);font-size:.8rem;font-style:italic}
+.pr-meta{font-size:.65rem;color:var(--text2);font-family:'DM Mono',monospace}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;
+  display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;
+  padding:1.5rem;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;
+  animation:slideUp .3s ease;-webkit-overflow-scrolling:touch}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;
+  margin:0 auto 1.25rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--green);color:#000;font-weight:600;font-size:.85rem;
+  padding:.6rem 1.2rem;border-radius:20px;opacity:0;transition:all .3s;
+  z-index:300;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error{background:var(--red);color:#fff}
+
+/* ADMIN */
+.pending-card{background:var(--surface);border:1px solid rgba(255,204,0,.3);
+  border-radius:16px;padding:1rem;margin-bottom:.75rem}
+.pending-actions{display:flex;gap:.5rem;margin-top:.75rem}
+.cert-preview{width:100%;border-radius:10px;margin-top:.5rem;border:1px solid var(--border);
+  max-height:200px;object-fit:cover}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="screen active">
+  <div class="logo-block">
+    <span class="logo-emoji">🐧</span>
+    <div class="logo-title">PINGUINOS</div>
+    <div class="logo-sub">PERFORMANCE TRACKER</div>
+  </div>
+  <div class="login-card">
+    <div>
+      <label class="login-label">Usuario</label>
+      <!-- Custom picker — iOS compatible -->
+      <button type="button" class="user-picker-btn" id="upb" onclick="toggleUserDropdown()">
+        <span class="upb-text" id="upb-text" style="color:var(--text2)">— Selecciona tu usuario —</span>
+        <span class="upb-arrow">▼</span>
+      </button>
+      <div class="user-dropdown" id="user-dropdown"></div>
+    </div>
+    <div>
+      <label class="login-label">Contraseña</label>
+      <input type="password" id="pass-input" placeholder="Tu contraseña" />
+    </div>
+    <div id="login-error" class="error-msg"></div>
+    <button class="btn" onclick="doLogin()">ENTRAR</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" class="screen">
+  <div class="app-header">
+    <div class="header-logo">🐧 PINGUINOS</div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <div class="header-user">
+        <span id="header-name"></span>
+        <span id="admin-badge-header" class="admin-badge" style="display:none">ADMIN</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">SALIR</button>
+    </div>
+  </div>
+  <div class="content" id="main-content"></div>
+  <div class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)"><span class="tab-icon">🏆</span>Rankings</button>
+    <button class="tab-btn" onclick="switchTab('miperfil',this)"><span class="tab-icon">👤</span>Mi Perfil</button>
+    <button class="tab-btn" onclick="switchTab('registro',this)"><span class="tab-icon">➕</span>Registrar</button>
+    <button class="tab-btn" onclick="switchTab('equipo',this)"><span class="tab-icon">🐧</span>Equipo</button>
+    <button class="tab-btn admin-tab" id="admin-tab-btn" onclick="switchTab('admin',this)" style="display:none"><span class="tab-icon">🔐</span>Admin</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ DATA ═══
+const USERS = [
+  { id:'admin', name:'Coman Nájera',          pass:'Pinguinos2024#Admin', isAdmin:true, num:'CN' },
+  { id:'u01',   name:'Andush Ramirez',         pass:'Ping#Andush01',  num:'AR' },
+  { id:'u02',   name:'Borja Rosales',          pass:'Ping#Borja02',   num:'BR' },
+  { id:'u03',   name:'Don Taitai Valen',       pass:'Ping#Taitai03',  num:'DV' },
+  { id:'u04',   name:'Kike Lopez',             pass:'Ping#Kike04',    num:'KL' },
+  { id:'u05',   name:'Luis Carcoba',           pass:'Ping#Luis05',    num:'LC' },
+  { id:'u06',   name:'Manuel Vazquez',         pass:'Ping#Manuel06',  num:'MV' },
+  { id:'u07',   name:'Primo Paco Jimenez',     pass:'Ping#Paco07',    num:'PJ' },
+  { id:'u08',   name:'Pablo Collignon',        pass:'Ping#Pablo08',   num:'PC' },
+  { id:'u09',   name:'Pu Pu Pu Arambula',     pass:'Ping#PuPu09',    num:'PA' },
+  { id:'u10',   name:'Rafa Morales',           pass:'Ping#Rafa10',    num:'RM' },
+  { id:'u11',   name:'Rodri',                 pass:'Ping#Rodri11',   num:'RO' },
+  { id:'u12',   name:'Sebastian Gomez Taillon',pass:'Ping#Sebas12',   num:'SG' },
+];
+
+const SPORTS = [
+  { id:'half', label:'70.3',    full:'Medio Ironman 70.3',  icon:'🏊‍♂️🚴‍♂️🏃‍♂️', segmented:true  },
+  { id:'full', label:'IRONMAN', full:'Ironman Completo',    icon:'⚡🏊‍♂️🚴‍♂️🏃‍♂️', segmented:true  },
+  { id:'hm',   label:'21K',     full:'Medio Maratón',       icon:'🏃‍♂️',          segmented:false },
+  { id:'mar',  label:'42K',     full:'Maratón',             icon:'🏅',           segmented:false },
+];
+
+// ═══ STORAGE ═══
+const DB = () => { try{ return JSON.parse(localStorage.getItem('ping_v3')||'{}'); }catch(e){ return {}; } };
+const saveDB = d => localStorage.setItem('ping_v3', JSON.stringify(d));
+const getUserRecs = uid => (DB()[uid]||[]);
+const getApproved = uid => getUserRecs(uid).filter(r=>r.status==='approved');
+
+function submitRec(uid, rec) {
+  const db = DB(); if(!db[uid]) db[uid]=[];
+  rec.status='pending'; rec.submittedAt=new Date().toISOString(); rec.id=Date.now().toString();
+  db[uid].push(rec); saveDB(db);
+}
+function setRecStatus(uid, id, status, reason) {
+  const db = DB(); if(!db[uid]) return;
+  const r = db[uid].find(r=>r.id===id);
+  if(r){ r.status=status; if(reason) r.rejectReason=reason; } saveDB(db);
+}
+function delRec(uid, id) {
+  const db = DB(); if(!db[uid]) return;
+  db[uid]=db[uid].filter(r=>r.id!==id); saveDB(db);
+}
+function allPending() {
+  const db=DB(), out=[];
+  Object.entries(db).forEach(([uid,recs])=>{
+    recs.filter(r=>r.status==='pending').forEach(r=>{
+      out.push({uid,user:USERS.find(u=>u.id===uid),record:r});
+    });
+  });
+  return out;
+}
+
+// ═══ AUTH ═══
+let CU = null; // current user
+let selectedUserId = null;
+
+function buildUserDropdown() {
+  const dd = document.getElementById('user-dropdown');
+  dd.innerHTML = USERS.map(u=>`
+    <div class="user-option" onclick="selectUser('${u.id}','${u.name}',${!!u.isAdmin})">
+      <div class="uo-avatar${u.isAdmin?' adm':''}">${u.num}</div>
+      <div class="uo-name">${u.name}${u.isAdmin?' ⭐':''}</div>
+    </div>`).join('');
+}
+
+function toggleUserDropdown() {
+  const btn = document.getElementById('upb');
+  const dd = document.getElementById('user-dropdown');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open',!isOpen);
+  btn.classList.toggle('open',!isOpen);
+}
+
+function selectUser(id, name, isAdmin) {
+  selectedUserId = id;
+  const btn = document.getElementById('upb');
+  const txt = document.getElementById('upb-text');
+  txt.textContent = name + (isAdmin?' ⭐':'');
+  txt.style.color = 'var(--text)';
+  btn.classList.remove('open');
+  document.getElementById('user-dropdown').classList.remove('open');
+  document.getElementById('pass-input').focus();
+}
+
+// Close dropdown on outside tap
+document.addEventListener('touchstart', e=>{
+  const dd = document.getElementById('user-dropdown');
+  const btn = document.getElementById('upb');
+  if(!dd.contains(e.target) && !btn.contains(e.target)) {
+    dd.classList.remove('open'); btn.classList.remove('open');
+  }
+}, {passive:true});
+
+function doLogin() {
+  const pass = document.getElementById('pass-input').value;
+  const err = document.getElementById('login-error');
+  if(!selectedUserId) { err.textContent='Selecciona tu usuario'; return; }
+  const user = USERS.find(u=>u.id===selectedUserId);
+  if(pass !== user.pass) { err.textContent='Contraseña incorrecta'; return; }
+  CU = user; err.textContent='';
+  document.getElementById('login-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  document.getElementById('header-name').textContent = user.name;
+  if(user.isAdmin){
+    document.getElementById('admin-badge-header').style.display='inline';
+    document.getElementById('admin-tab-btn').style.display='flex';
+  }
+  switchTab('dashboard', document.querySelector('.tab-btn'));
+}
+
+function doLogout() {
+  CU=null; selectedUserId=null;
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+  document.getElementById('pass-input').value='';
+  document.getElementById('upb-text').textContent='— Selecciona tu usuario —';
+  document.getElementById('upb-text').style.color='var(--text2)';
+  document.getElementById('admin-badge-header').style.display='none';
+  document.getElementById('admin-tab-btn').style.display='none';
+}
+document.getElementById('pass-input').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ═══ TABS ═══
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const c = document.getElementById('main-content');
+  if(tab==='dashboard') renderDashboard(c);
+  if(tab==='miperfil')  renderMiPerfil(c);
+  if(tab==='registro')  renderRegistro(c);
+  if(tab==='equipo')    renderEquipo(c);
+  if(tab==='admin'&&CU?.isAdmin) renderAdmin(c);
+  c.scrollTop=0;
+}
+
+// ═══ UTILS ═══
+const t2s=(h,m,s)=>(+h)*3600+(+m)*60+(+s);
+const s2t=sec=>{if(!sec&&sec!==0)return'—';const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;};
+const fd=d=>{if(!d)return'';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;};
+const vi=id=>{const el=document.getElementById(id);return el?parseInt(el.value)||0:0;};
+const vs=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(err?' error':'');
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);
+}
+const getBest=(uid,sid)=>{const r=getApproved(uid).filter(r=>r.sport===sid).sort((a,b)=>a.totalSec-b.totalSec);return r[0]||null;};
+function statusBadge(s){
+  if(s==='pending') return '<span class="status-badge status-pending">⏳ Pendiente</span>';
+  if(s==='approved') return '<span class="status-badge status-approved">✅ Aprobado</span>';
+  return '<span class="status-badge status-rejected">❌ Rechazado</span>';
+}
+function getYears(){
+  const db=DB(),y=new Set();
+  Object.values(db).forEach(recs=>recs.forEach(r=>{if(r.date&&r.status==='approved')y.add(r.date.slice(0,4));}));
+  return['all',...Array.from(y).sort().reverse()];
+}
+function rankByYear(sid,year){
+  const out=[];
+  USERS.forEach(u=>{
+    let recs=getApproved(u.id).filter(r=>r.sport===sid);
+    if(year&&year!=='all') recs=recs.filter(r=>r.date?.startsWith(year));
+    if(!recs.length) return;
+    out.push({user:u,record:recs.sort((a,b)=>a.totalSec-b.totalSec)[0]});
+  });
+  return out.sort((a,b)=>a.record.totalSec-b.record.totalSec);
+}
+
+// ═══ DASHBOARD ═══
+let dashYear='all', dashSport='half';
+
+function renderDashboard(c){
+  const years=getYears(), ranking=rankByYear(dashSport,dashYear);
+  const sport=SPORTS.find(s=>s.id===dashSport);
+  const db=DB(); let approved=0,pending=0;
+  Object.values(db).forEach(recs=>recs.forEach(r=>{if(r.status==='approved')approved++;if(r.status==='pending')pending++;}));
+  const active=Object.keys(db).filter(k=>db[k]?.some(r=>r.status==='approved')).length;
+
+  c.innerHTML=`
+    <div class="section-title">🏆 <span>Rankings</span></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number">${approved}</div><div class="stat-label">Aprobados</div></div>
+      <div class="stat-card"><div class="stat-number">${active}</div><div class="stat-label">Pingüinos activos</div></div>
+    </div>
+    ${pending>0&&CU?.isAdmin?`<div class="card" style="border-color:rgba(255,204,0,.4);background:rgba(255,204,0,.05);margin-bottom:.75rem"><div style="font-size:.85rem">⏳ <strong>${pending}</strong> récord(s) esperando aprobación</div></div>`:''}
+    <div class="year-chips">${years.map(y=>`<div class="chip ${y===dashYear?'active':''}" onclick="setDY('${y}')">${y==='all'?'Todos':y}</div>`).join('')}</div>
+    <div class="sport-tabs">${SPORTS.map(s=>`<div class="sport-tab ${s.id===dashSport?'active':''}" onclick="setDS('${s.id}')">${s.icon} ${s.label}</div>`).join('')}</div>
+    <div class="card">
+      <div class="card-title">${sport.icon} ${sport.full}</div>
+      ${ranking.length===0?`<div class="empty"><span class="empty-icon">📭</span><p>Sin récords aprobados aún</p></div>`:
+        ranking.map((item,i)=>`
+        <div class="rank-item">
+          <div class="rank-pos ${i===0?'p1':i===1?'p2':i===2?'p3':'other'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+          <div class="avatar" style="width:36px;height:36px;font-size:.7rem${item.user.isAdmin?';background:linear-gradient(135deg,var(--admin),#ffcc00)':''}">${item.user.num}</div>
+          <div class="rank-name">${item.user.name}<div class="rank-sub">${fd(item.record.date)} · ${item.record.place||'—'}</div></div>
+          <div class="rank-time">${s2t(item.record.totalSec)}</div>
+        </div>`).join('')}
+    </div>
+    ${sport.segmented?segLeaders(sport.id):''}`;
+}
+function segLeaders(sid){
+  const segs=[{k:'swimSec',l:'🏊 Nadada'},{k:'t1Sec',l:'T1'},{k:'bikeSec',l:'🚴 Ciclismo'},{k:'t2Sec',l:'T2'},{k:'runSec',l:'🏃 Corrida'}];
+  let h=`<div class="card"><div class="card-title">⚡ Mejores por segmento</div>`;
+  segs.forEach(seg=>{
+    let best=null,bu=null;
+    USERS.forEach(u=>getApproved(u.id).filter(r=>r.sport===sid&&r[seg.k]).forEach(r=>{if(!best||r[seg.k]<best){best=r[seg.k];bu=u;}}));
+    h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.8rem;color:var(--text2)">${seg.l}</span>
+      <div style="text-align:right"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--accent)">${best?s2t(best):'—'}</div>
+      <div class="pr-meta">${bu?bu.name:''}</div></div></div>`;
+  });
+  return h+`</div>`;
+}
+function setDY(y){dashYear=y;switchTab('dashboard',null);document.querySelectorAll('.tab-btn')[0].classList.add('active');}
+function setDS(s){dashSport=s;switchTab('dashboard',null);document.querySelectorAll('.tab-btn')[0].classList.add('active');}
+
+// ═══ MI PERFIL ═══
+function renderMiPerfil(c){
+  const recs=getUserRecs(CU.id);
+  const apv=recs.filter(r=>r.status==='approved').length;
+  const pnd=recs.filter(r=>r.status==='pending').length;
+  c.innerHTML=`
+    <div class="card" style="text-align:center;margin-bottom:1rem">
+      <div class="avatar avatar-lg${CU.isAdmin?' is-admin':''}">${CU.num}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px">${CU.name}</div>
+      ${CU.isAdmin?'<span class="admin-badge">ADMIN</span>':''}
+      <div style="font-size:.75rem;color:var(--text2);font-family:'DM Mono',monospace;margin-top:6px">${apv} aprobados · ${pnd} pendientes</div>
+      <div style="margin-top:.75rem;display:flex;justify-content:center;flex-wrap:wrap;gap:4px">
+        ${SPORTS.map(s=>`<span class="sport-badge ${recs.some(r=>r.sport===s.id&&r.status==='approved')?'has-pr':''}">${s.icon} ${s.label}</span>`).join('')}
+      </div>
+    </div>
+    ${SPORTS.map(s=>miSport(s,recs)).join('')}`;
+}
+function miSport(sport,recs){
+  const my=recs.filter(r=>r.sport===sport.id).sort((a,b)=>a.totalSec-b.totalSec);
+  const best=my.find(r=>r.status==='approved');
+  let h=`<div class="card"><div class="card-title">${sport.icon} ${sport.full}</div>`;
+  if(!my.length){ h+=`<div class="no-pr">Sin récord registrado</div>`; }
+  else {
+    if(best){
+      if(sport.segmented){
+        h+=`<div class="seg-grid">
+          <div class="seg-box"><div class="seg-label">🏊 Nadada</div><div class="seg-val">${s2t(best.swimSec)}</div></div>
+          <div class="seg-box"><div class="seg-label">T1</div><div class="seg-val">${s2t(best.t1Sec)}</div></div>
+          <div class="seg-box"><div class="seg-label">🚴 Ciclismo</div><div class="seg-val">${s2t(best.bikeSec)}</div></div>
+          <div class="seg-box"><div class="seg-label">T2</div><div class="seg-val">${s2t(best.t2Sec)}</div></div>
+          <div class="seg-box"><div class="seg-label">🏃 Corrida</div><div class="seg-val">${s2t(best.runSec)}</div></div>
+          <div class="seg-box total"><div class="seg-label">⏱ TOTAL</div><div class="seg-val">${s2t(best.totalSec)}</div></div>
+        </div>`;
+      } else {
+        h+=`<div class="seg-grid"><div class="seg-box total"><div class="seg-label">⏱ MEJOR</div><div class="seg-val">${s2t(best.totalSec)}</div></div></div>`;
+      }
+      h+=`<div class="pr-meta" style="margin-top:.5rem">${fd(best.date)} · ${best.place||'—'}</div>`;
+    }
+    h+=`<div style="margin-top:.75rem"><div class="card-title" style="font-size:.75rem;margin-bottom:.5rem">HISTORIAL</div>`;
+    my.forEach(r=>{
+      h+=`<div class="rank-item">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem">${s2t(r.totalSec)}</span>
+            ${statusBadge(r.status)}
+          </div>
+          <div class="pr-meta">${fd(r.date)} · ${r.place||'—'}</div>
+          ${r.status==='rejected'&&r.rejectReason?`<div style="font-size:.7rem;color:var(--red);margin-top:2px">Motivo: ${r.rejectReason}</div>`:''}
+        </div>
+        ${r.status!=='approved'?`<button class="btn btn-danger btn-sm" onclick="doDelRec('${CU.id}','${r.id}')">✕</button>`:''}
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  return h+`</div>`;
+}
+function doDelRec(uid,id){
+  if(confirm('¿Eliminar este récord?')){delRec(uid,id);toast('Eliminado');switchTab('miperfil',document.querySelectorAll('.tab-btn')[1]);}
+}
+
+// ═══ REGISTRO ═══
+let regSport='half';
+function renderRegistro(c){
+  const sport=SPORTS.find(s=>s.id===regSport);
+  c.innerHTML=`
+    <div class="section-title">➕ <span>Registrar PR</span></div>
+    <div class="card" style="border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.04);margin-bottom:.75rem">
+      <div style="font-size:.8rem;line-height:1.6">📋 <strong>Solo certificado oficial.</strong><br>
+      <span style="color:var(--text2)">No se acepta: Strava, Whoop, Garmin ni screenshots.</span></div>
+    </div>
+    <div class="sport-tabs">${SPORTS.map(s=>`<div class="sport-tab ${s.id===regSport?'active':''}" onclick="setRS('${s.id}')">${s.icon} ${s.label}</div>`).join('')}</div>
+    <div class="card">
+      <div class="card-title">${sport.icon} ${sport.full}</div>
+      ${sport.segmented?segForm():simpleForm()}
+      <div style="margin-top:.5rem"><label class="form-label">Fecha de la carrera</label><input type="date" id="f-date"/></div>
+      <div style="margin-top:.5rem"><label class="form-label">Lugar / Evento</label><input type="text" id="f-place" placeholder="ej. Ironman Cabo 2024"/></div>
+      <div style="margin-top:.75rem">
+        <label class="form-label">📎 Certificado oficial (PDF o imagen) *</label>
+        <input type="file" id="f-cert" accept="image/*,application/pdf" onchange="prevCert(this)"/>
+        <div id="cert-prev"></div>
+      </div>
+      <button class="btn btn-orange" style="margin-top:1rem" onclick="saveRecord()">ENVIAR PARA APROBACIÓN</button>
+    </div>
+    <div style="font-size:.7rem;color:var(--text2);text-align:center;margin-top:.5rem;font-family:'DM Mono',monospace">
+      Tu récord aparece en rankings solo cuando sea aprobado por Admin
+    </div>`;
+}
+function segForm(){return`
+  <div style="margin-bottom:.75rem"><label class="form-label">🏊 Nadada (h:mm:ss)</label>
+    <div class="form-row-3"><input type="number" id="sw-h" placeholder="H" min="0" max="9"><input type="number" id="sw-m" placeholder="MM" min="0" max="59"><input type="number" id="sw-s" placeholder="SS" min="0" max="59"></div></div>
+  <div style="margin-bottom:.75rem"><label class="form-label">T1 — Transición 1 (mm:ss)</label>
+    <div class="form-row"><input type="number" id="t1-m" placeholder="MM" min="0" max="59"><input type="number" id="t1-s" placeholder="SS" min="0" max="59"></div></div>
+  <div style="margin-bottom:.75rem"><label class="form-label">🚴 Ciclismo (h:mm:ss)</label>
+    <div class="form-row-3"><input type="number" id="bk-h" placeholder="H" min="0" max="9"><input type="number" id="bk-m" placeholder="MM" min="0" max="59"><input type="number" id="bk-s" placeholder="SS" min="0" max="59"></div></div>
+  <div style="margin-bottom:.75rem"><label class="form-label">T2 — Transición 2 (mm:ss)</label>
+    <div class="form-row"><input type="number" id="t2-m" placeholder="MM" min="0" max="59"><input type="number" id="t2-s" placeholder="SS" min="0" max="59"></div></div>
+  <div style="margin-bottom:.75rem"><label class="form-label">🏃 Corrida (h:mm:ss)</label>
+    <div class="form-row-3"><input type="number" id="rn-h" placeholder="H" min="0" max="9"><input type="number" id="rn-m" placeholder="MM" min="0" max="59"><input type="number" id="rn-s" placeholder="SS" min="0" max="59"></div></div>
+  <div class="divider"></div>
+  <div style="margin-bottom:.75rem"><label class="form-label">⏱ Tiempo Total (h:mm:ss)</label>
+    <div class="form-row-3"><input type="number" id="tt-h" placeholder="H" min="0" max="24"><input type="number" id="tt-m" placeholder="MM" min="0" max="59"><input type="number" id="tt-s" placeholder="SS" min="0" max="59"></div></div>`;}
+function simpleForm(){return`
+  <div style="margin-bottom:.75rem"><label class="form-label">⏱ Tiempo (h:mm:ss)</label>
+    <div class="form-row-3"><input type="number" id="tt-h" placeholder="H" min="0" max="9"><input type="number" id="tt-m" placeholder="MM" min="0" max="59"><input type="number" id="tt-s" placeholder="SS" min="0" max="59"></div></div>`;}
+function prevCert(input){
+  const a=document.getElementById('cert-prev');
+  if(!input.files.length){a.innerHTML='';return;}
+  const f=input.files[0];
+  if(f.type.startsWith('image/')){const r=new FileReader();r.onload=e=>{a.innerHTML=`<img src="${e.target.result}" class="cert-preview"/>`;};r.readAsDataURL(f);}
+  else{a.innerHTML=`<div style="margin-top:.5rem;font-size:.75rem;color:var(--green);font-family:'DM Mono',monospace">📄 ${f.name}</div>`;}
+}
+function setRS(s){regSport=s;switchTab('registro',document.querySelectorAll('.tab-btn')[2]);}
+function saveRecord(){
+  const sport=SPORTS.find(s=>s.id===regSport);
+  const totalSec=t2s(vi('tt-h'),vi('tt-m'),vi('tt-s'));
+  if(!totalSec){toast('Ingresa el tiempo total',true);return;}
+  const certInput=document.getElementById('f-cert');
+  if(!certInput.files.length){toast('Debes subir el certificado oficial',true);return;}
+  const rec={sport:regSport,totalSec,date:vs('f-date'),place:vs('f-place')};
+  if(sport.segmented){
+    rec.swimSec=t2s(vi('sw-h'),vi('sw-m'),vi('sw-s'));
+    rec.t1Sec=t2s(0,vi('t1-m'),vi('t1-s'));
+    rec.bikeSec=t2s(vi('bk-h'),vi('bk-m'),vi('bk-s'));
+    rec.t2Sec=t2s(0,vi('t2-m'),vi('t2-s'));
+    rec.runSec=t2s(vi('rn-h'),vi('rn-m'),vi('rn-s'));
+  }
+  const f=certInput.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    rec.certData=e.target.result;rec.certName=f.name;rec.certType=f.type;
+    if(CU.isAdmin){
+      rec.status='approved';rec.submittedAt=new Date().toISOString();rec.id=Date.now().toString();
+      const db=DB();if(!db[CU.id])db[CU.id]=[];db[CU.id].push(rec);saveDB(db);
+      toast('✅ Récord guardado y aprobado!');
+    } else {
+      submitRec(CU.id,rec);
+      toast('📤 Enviado. Esperando aprobación del Admin');
+    }
+    switchTab('miperfil',document.querySelectorAll('.tab-btn')[1]);
+  };
+  reader.readAsDataURL(f);
+}
+
+// ═══ EQUIPO ═══
+function renderEquipo(c){
+  c.innerHTML=`<div class="section-title">🐧 <span>Equipo</span></div>${USERS.map(pingCard).join('')}`;
+}
+function pingCard(u){
+  const recs=getApproved(u.id);
+  const best=['half','full','mar','hm'].map(s=>getBest(u.id,s)).find(Boolean);
+  return`<div class="card" style="display:flex;align-items:center;gap:.75rem;cursor:pointer" onclick="openPingModal('${u.id}')">
+    <div class="avatar${u.isAdmin?' is-admin':''}">${u.num}</div>
+    <div style="flex:1">
+      <div style="font-weight:600">${u.name}${u.isAdmin?'<span class="admin-badge" style="margin-left:6px">ADMIN</span>':''}</div>
+      <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:2px">
+        ${SPORTS.map(s=>`<span class="sport-badge ${recs.some(r=>r.sport===s.id)?'has-pr':''}">${s.label}</span>`).join('')}
+      </div>
+      ${best?`<div style="font-size:.65rem;color:var(--text2);font-family:'DM Mono',monospace;margin-top:4px">Mejor: ${s2t(best.totalSec)}</div>`:`<div style="font-size:.65rem;color:var(--text2);margin-top:4px;font-style:italic">Sin récords aún</div>`}
+    </div>
+    <div style="color:var(--text2);font-size:1.2rem">›</div>
+  </div>`;
+}
+function openPingModal(uid){
+  const u=USERS.find(x=>x.id===uid);
+  const recs=getApproved(uid);
+  let h=`<div style="text-align:center;margin-bottom:1rem">
+    <div class="avatar avatar-lg${u.isAdmin?' is-admin':''}">${u.num}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px">${u.name}</div>
+    ${u.isAdmin?'<span class="admin-badge">ADMIN</span>':''}
+    <div style="font-size:.75rem;color:var(--text2);font-family:'DM Mono',monospace;margin-top:4px">${recs.length} récords aprobados</div>
+  </div>`;
+  SPORTS.forEach(s=>{
+    const my=recs.filter(r=>r.sport===s.id).sort((a,b)=>a.totalSec-b.totalSec);
+    const best=my[0];
+    h+=`<div style="margin-bottom:.75rem"><div class="card-title">${s.icon} ${s.full}</div>`;
+    if(!best){h+=`<div class="no-pr">Sin récord</div>`;}
+    else{
+      if(s.segmented){h+=`<div class="seg-grid">
+        <div class="seg-box"><div class="seg-label">🏊 Nadada</div><div class="seg-val">${s2t(best.swimSec)}</div></div>
+        <div class="seg-box"><div class="seg-label">T1</div><div class="seg-val">${s2t(best.t1Sec)}</div></div>
+        <div class="seg-box"><div class="seg-label">🚴 Ciclismo</div><div class="seg-val">${s2t(best.bikeSec)}</div></div>
+        <div class="seg-box"><div class="seg-label">T2</div><div class="seg-val">${s2t(best.t2Sec)}</div></div>
+        <div class="seg-box"><div class="seg-label">🏃 Corrida</div><div class="seg-val">${s2t(best.runSec)}</div></div>
+        <div class="seg-box total"><div class="seg-label">⏱ TOTAL</div><div class="seg-val">${s2t(best.totalSec)}</div></div>
+      </div>`;}
+      else{h+=`<div class="seg-grid"><div class="seg-box total"><div class="seg-label">⏱ TIEMPO</div><div class="seg-val">${s2t(best.totalSec)}</div></div></div>`;}
+      h+=`<div class="pr-meta" style="font-size:.7rem;color:var(--text2);margin-top:4px">${fd(best.date)} · ${best.place||'—'}</div>`;
+    }
+    h+=`<div style="height:1px;background:var(--border);margin:.5rem 0"></div></div>`;
+  });
+  document.getElementById('modal-content').innerHTML=h;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e){if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');}
+
+// ═══ ADMIN ═══
+function renderAdmin(c){
+  const pending=allPending();
+  const db=DB();let apv=0;Object.values(db).forEach(recs=>recs.forEach(r=>{if(r.status==='approved')apv++;}));
+  c.innerHTML=`
+    <div class="section-title">🔐 Panel <span style="color:var(--admin)">Admin</span></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number" style="color:var(--yellow)">${pending.length}</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat-card"><div class="stat-number" style="color:var(--green)">${apv}</div><div class="stat-label">Aprobados</div></div>
+    </div>
+    ${pending.length===0?`<div class="empty"><span class="empty-icon">✅</span><p>Todo al día. Sin pendientes.</p></div>`:
+      pending.map(p=>pendingCard(p)).join('')}`;
+}
+function pendingCard(p){
+  const sport=SPORTS.find(s=>s.id===p.record.sport);
+  let certH='';
+  if(p.record.certData){
+    if(p.record.certType?.startsWith('image/')){certH=`<img src="${p.record.certData}" class="cert-preview" style="cursor:pointer" onclick="openCert('${p.uid}','${p.record.id}')"/>`;}
+    else{certH=`<div style="margin-top:.5rem;font-size:.75rem;color:var(--accent);font-family:'DM Mono',monospace;cursor:pointer" onclick="dlCert('${p.uid}','${p.record.id}')">📄 Ver PDF: ${p.record.certName||'certificado'}</div>`;}
+  }
+  return`<div class="pending-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+      <div><div style="font-weight:700;font-size:.95rem">${p.user.name}</div>
+      <div style="font-size:.7rem;color:var(--text2);font-family:'DM Mono',monospace">${sport?.icon} ${sport?.full}</div></div>
+      <span class="status-badge status-pending">Pendiente</span>
+    </div>
+    <div class="seg-grid" style="margin-top:0">
+      ${sport?.segmented?`
+        <div class="seg-box"><div class="seg-label">🏊 Nadada</div><div class="seg-val">${s2t(p.record.swimSec)}</div></div>
+        <div class="seg-box"><div class="seg-label">🚴 Bike</div><div class="seg-val">${s2t(p.record.bikeSec)}</div></div>
+        <div class="seg-box"><div class="seg-label">🏃 Run</div><div class="seg-val">${s2t(p.record.runSec)}</div></div>
+        <div class="seg-box"><div class="seg-label">T1+T2</div><div class="seg-val">${s2t((p.record.t1Sec||0)+(p.record.t2Sec||0))}</div></div>`:''}
+      <div class="seg-box total"><div class="seg-label">⏱ TOTAL</div><div class="seg-val">${s2t(p.record.totalSec)}</div></div>
+    </div>
+    <div class="pr-meta" style="margin-top:.4rem">${fd(p.record.date)} · ${p.record.place||'—'}</div>
+    ${certH}
+    <div style="display:flex;gap:.5rem;margin-top:.75rem">
+      <button class="btn btn-green btn-sm" style="flex:1" onclick="approve('${p.uid}','${p.record.id}')">✅ APROBAR</button>
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="reject('${p.uid}','${p.record.id}')">❌ RECHAZAR</button>
+    </div>
+  </div>`;
+}
+function approve(uid,id){setRecStatus(uid,id,'approved');toast('✅ Aprobado!');switchTab('admin',document.getElementById('admin-tab-btn'));}
+function reject(uid,id){
+  const r=prompt('Motivo del rechazo (opcional):')||'';
+  setRecStatus(uid,id,'rejected',r);toast('❌ Rechazado',true);
+  switchTab('admin',document.getElementById('admin-tab-btn'));
+}
+function openCert(uid,id){
+  const db=DB();const rec=db[uid]?.find(r=>r.id===id);if(!rec?.certData)return;
+  document.getElementById('modal-content').innerHTML=`<div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;margin-bottom:1rem;color:var(--accent)">📎 Certificado</div><img src="${rec.certData}" style="width:100%;border-radius:10px"/>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function dlCert(uid,id){
+  const db=DB();const rec=db[uid]?.find(r=>r.id===id);if(!rec?.certData)return;
+  const a=document.createElement('a');a.href=rec.certData;a.download=rec.certName||'cert.pdf';a.click();
+}
+
+// ═══ INIT ═══
+buildUserDropdown();
+</script>
+</body>
+</html>
